@@ -1,8 +1,7 @@
 package io.hyperfoil.hotrod.api;
 
-import org.infinispan.client.hotrod.RemoteCache;
-
 import io.hyperfoil.api.session.Session;
+import io.hyperfoil.hotrod.connection.HotRodRemoteCachePoolImpl;
 
 public interface HotRodRemoteCachePool extends Session.Resource {
 
@@ -14,5 +13,5 @@ public interface HotRodRemoteCachePool extends Session.Resource {
 
    void start();
    void shutdown();
-   RemoteCache getRemoteCache(String cacheName);
+   HotRodRemoteCachePoolImpl.RemoteCacheWithoutToString getRemoteCache(String cacheName);
 }

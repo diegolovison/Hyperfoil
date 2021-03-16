@@ -11,3 +11,5 @@ scenario:
       - randomUUID: cacheValue
       - hotrodRequest:
           put: my-cache
+          key: key-${cacheKey}
+          value: value-${cacheValue}

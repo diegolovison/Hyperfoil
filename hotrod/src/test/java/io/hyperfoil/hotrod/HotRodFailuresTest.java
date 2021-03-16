@@ -22,7 +22,7 @@ public class HotRodFailuresTest extends BaseHotRodTest {
 
    @Test
    public void testHotRodFailures() {
-      Benchmark benchmark = loadScenario("scenarios/HotRodTest.hf.yaml");
+      Benchmark benchmark = loadScenario("scenarios/HotRodPutTest.hf.yaml");
       Map<String, StatisticsSnapshot> stats = runScenario(benchmark);
       assertTrue(stats.get("example").requestCount > 0);
       assertTrue(stats.get("example").resetCount > 0);

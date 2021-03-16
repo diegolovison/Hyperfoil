@@ -3,7 +3,6 @@ package io.hyperfoil.hotrod.steps;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeoutException;
 
-import org.infinispan.client.hotrod.RemoteCache;
 import org.infinispan.client.hotrod.exceptions.HotRodTimeoutException;
 
 import io.hyperfoil.api.session.Access;
@@ -12,13 +11,13 @@ import io.hyperfoil.api.session.Session;
 import io.hyperfoil.api.statistics.Statistics;
 import io.hyperfoil.core.builders.SLA;
 import io.hyperfoil.core.metric.MetricSelector;
-import io.hyperfoil.core.metric.ProvidedMetricSelector;
 import io.hyperfoil.core.session.IntVar;
 import io.hyperfoil.core.session.ObjectVar;
 import io.hyperfoil.core.steps.StatisticsStep;
 import io.hyperfoil.function.SerializableFunction;
 import io.hyperfoil.hotrod.api.HotRodOperation;
 import io.hyperfoil.hotrod.api.HotRodRemoteCachePool;
+import io.hyperfoil.hotrod.connection.HotRodRemoteCachePoolImpl;
 import io.hyperfoil.hotrod.resource.HotRodResource;
 
 public class HotRodRequestStep extends StatisticsStep implements ResourceUtilizer, SLA.Provider {
@@ -26,23 +25,22 @@ public class HotRodRequestStep extends StatisticsStep implements ResourceUtilize
    final HotRodResource.Key futureWrapperKey;
    final SerializableFunction<Session, HotRodOperation> operation;
    final SerializableFunction<Session, String> cacheName;
-   final Access cacheKeyAccess;
-   final Access cacheValueAccess;
    final MetricSelector metricSelector;
-
+   final SerializableFunction<Session, String> keyGenerator;
+   final SerializableFunction<Session, String> valueGenerator;
    protected HotRodRequestStep(int id, HotRodResource.Key futureWrapperKey,
                                SerializableFunction<Session, HotRodOperation> operation,
                                SerializableFunction<Session, String> cacheName,
                                MetricSelector metricSelector,
-                               Access cacheKeyAccess,
-                               Access cacheValueAccess) {
+                               SerializableFunction<Session, String> keyGenerator,
+                               SerializableFunction<Session, String> valueGenerator) {
       super(id);
       this.futureWrapperKey = futureWrapperKey;
       this.operation = operation;
       this.cacheName = cacheName;
       this.metricSelector = metricSelector;
-      this.cacheKeyAccess = cacheKeyAccess;
-      this.cacheValueAccess = cacheValueAccess;
+      this.keyGenerator = keyGenerator;
+      this.valueGenerator = valueGenerator;
    }
 
    @Override
@@ -55,20 +53,23 @@ public class HotRodRequestStep extends StatisticsStep implements ResourceUtilize
 
       String cacheName = this.cacheName.apply(session);
       HotRodOperation operation = this.operation.apply(session);
-
-      Object key = getValue(cacheKeyAccess.getVar(session));
-      Object value = getValue(cacheValueAccess.getVar(session));
-
+      Object key = keyGenerator.apply(session);
+      Object value = null;
+      if (valueGenerator != null) {
+         value = valueGenerator.apply(session);
+      }
       HotRodRemoteCachePool pool = HotRodRemoteCachePool.get(session);
-      RemoteCache remoteCache = pool.getRemoteCache(cacheName);
-
-      CompletableFuture future;
+      HotRodRemoteCachePoolImpl.RemoteCacheWithoutToString remoteCache = pool.getRemoteCache(cacheName);
       String metric = metricSelector.apply(null, cacheName);
       Statistics statistics = session.statistics(id(), metric);
+
       long startTimestampMs = System.currentTimeMillis();
       long startTimestampNanos = System.nanoTime();
+      CompletableFuture future;
       if (HotRodOperation.PUT.equals(operation)) {
          future = remoteCache.putAsync(key, value);
+      } else if (HotRodOperation.GET.equals(operation)) {
+         future = remoteCache.getAsync(key);
       } else {
          throw new IllegalArgumentException(String.format("HotRodOperation %s not implemented", operation));
       }

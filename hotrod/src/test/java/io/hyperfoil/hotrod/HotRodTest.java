@@ -18,8 +18,16 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 public class HotRodTest extends BaseHotRodTest {
 
    @Test
-   public void testHotRod() {
-      Benchmark benchmark = loadScenario("scenarios/HotRodTest.hf.yaml");
+   public void testHotRodPut() {
+      Benchmark benchmark = loadScenario("scenarios/HotRodPutTest.hf.yaml");
+      Map<String, StatisticsSnapshot> stats = runScenario(benchmark);
+      assertTrue(stats.get("example").requestCount > 0);
+      assertEquals(0, stats.get("example").resetCount);
+   }
+
+   @Test
+   public void testHotRodGet() {
+      Benchmark benchmark = loadScenario("scenarios/HotRodTestGet.hf.yaml");
       Map<String, StatisticsSnapshot> stats = runScenario(benchmark);
       assertTrue(stats.get("example").requestCount > 0);
       assertEquals(0, stats.get("example").resetCount);

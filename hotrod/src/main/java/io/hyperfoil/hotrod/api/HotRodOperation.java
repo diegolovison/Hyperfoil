@@ -4,5 +4,9 @@ public enum HotRodOperation {
    /**
     * Adds or overrides each specified entry in the remote cache.
     */
-   PUT
+   PUT,
+   /**
+    * Get specified entry in the remote cache.
+    */
+   GET
 }

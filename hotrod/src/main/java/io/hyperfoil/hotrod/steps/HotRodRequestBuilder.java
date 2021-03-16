@@ -5,16 +5,20 @@ import java.util.List;
 
 import org.kohsuke.MetaInfServices;
 
+import io.hyperfoil.api.config.BenchmarkDefinitionException;
 import io.hyperfoil.api.config.Locator;
 import io.hyperfoil.api.config.Name;
 import io.hyperfoil.api.config.Step;
 import io.hyperfoil.api.config.StepBuilder;
+import io.hyperfoil.api.session.Session;
 import io.hyperfoil.core.builders.BaseStepBuilder;
+import io.hyperfoil.core.generators.StringGeneratorBuilder;
+import io.hyperfoil.core.generators.StringGeneratorImplBuilder;
 import io.hyperfoil.core.metric.MetricSelector;
 import io.hyperfoil.core.metric.PathMetricSelector;
 import io.hyperfoil.core.metric.ProvidedMetricSelector;
-import io.hyperfoil.core.session.SessionFactory;
 import io.hyperfoil.core.steps.StatisticsStep;
+import io.hyperfoil.function.SerializableFunction;
 import io.hyperfoil.hotrod.api.HotRodOperation;
 import io.hyperfoil.hotrod.resource.HotRodResource;
 
@@ -26,8 +30,10 @@ import io.hyperfoil.hotrod.resource.HotRodResource;
 public class HotRodRequestBuilder extends BaseStepBuilder<HotRodRequestBuilder> {
 
    private HotRodOperationBuilder operation;
-   private HotRodCacheNameBuilder cacheName;
+   private StringGeneratorBuilder cacheName;
    private MetricSelector metricSelector;
+   private StringGeneratorBuilder key;
+   private StringGeneratorBuilder value;
 
    @Override
    public void prepareBuild() {
@@ -41,8 +47,10 @@ public class HotRodRequestBuilder extends BaseStepBuilder<HotRodRequestBuilder> 
    public List<Step> build() {
       int stepId = StatisticsStep.nextId();
       HotRodResource.Key key = new HotRodResource.Key();
+      SerializableFunction<Session, String> keyGenerator = this.key != null ? this.key.build() : null;
+      SerializableFunction<Session, String> valueGenerator = this.value != null ? this.value.build() : null;
       HotRodRequestStep step = new HotRodRequestStep(stepId, key, operation.build(), cacheName.build(), metricSelector,
-            SessionFactory.access("cacheKey"), SessionFactory.access("cacheValue"));
+            keyGenerator, valueGenerator);
       HotRodResponseStep secondHotRodStep = new HotRodResponseStep(key);
       return Arrays.asList(step, secondHotRodStep);
    }
@@ -73,20 +81,20 @@ public class HotRodRequestBuilder extends BaseStepBuilder<HotRodRequestBuilder> 
       return selector;
    }
 
-   /**
-    * A named cache from the remote server if the cache has been defined, otherwise if the cache name is undefined,
-    * it will return null.
-    *
-    * @param cacheName name of cache to retrieve
-    * @return
-    */
-   public HotRodRequestBuilder cacheName(String cacheName) {
-      return cacheName(() -> new HotRodCacheNameBuilder.Provided(cacheName));
+   public StringGeneratorImplBuilder<HotRodRequestBuilder> cacheName() {
+      StringGeneratorImplBuilder<HotRodRequestBuilder> builder = new StringGeneratorImplBuilder<>(this, false);
+      cacheName(builder);
+      return builder;
    }
-
-   public HotRodRequestBuilder cacheName(HotRodCacheNameBuilder cacheName) {
-      this.cacheName = cacheName;
+   public HotRodRequestBuilder cacheName(StringGeneratorBuilder builder) {
+      if (this.cacheName != null) {
+         throw new BenchmarkDefinitionException("Path generator already set.");
+      }
+      this.cacheName = builder;
       return this;
+   }
+   public HotRodRequestBuilder cacheName(String pattern) {
+      return cacheName().pattern(pattern).end();
    }
 
    public HotRodRequestBuilder operation(HotRodOperation operation) {
@@ -98,6 +106,38 @@ public class HotRodRequestBuilder extends BaseStepBuilder<HotRodRequestBuilder> 
       return this;
    }
 
+   public StringGeneratorImplBuilder<HotRodRequestBuilder> key() {
+      StringGeneratorImplBuilder<HotRodRequestBuilder> builder = new StringGeneratorImplBuilder<>(this, false);
+      key(builder);
+      return builder;
+   }
+   public HotRodRequestBuilder key(StringGeneratorBuilder builder) {
+      if (this.key != null) {
+         throw new BenchmarkDefinitionException("Path generator already set.");
+      }
+      this.key = builder;
+      return this;
+   }
+   public HotRodRequestBuilder key(String pattern) {
+      return key().pattern(pattern).end();
+   }
+
+   public StringGeneratorImplBuilder<HotRodRequestBuilder> value() {
+      StringGeneratorImplBuilder<HotRodRequestBuilder> builder = new StringGeneratorImplBuilder<>(this, false);
+      value(builder);
+      return builder;
+   }
+   public HotRodRequestBuilder value(StringGeneratorBuilder builder) {
+      if (this.value != null) {
+         throw new BenchmarkDefinitionException("Path generator already set.");
+      }
+      this.value = builder;
+      return this;
+   }
+   public HotRodRequestBuilder value(String pattern) {
+      return value().pattern(pattern).end();
+   }
+
    /**
     * Adds or overrides each specified entry in the remote cache.
     *
@@ -106,5 +146,15 @@ public class HotRodRequestBuilder extends BaseStepBuilder<HotRodRequestBuilder> 
     */
    public HotRodRequestBuilder put(String cacheName) {
       return operation(HotRodOperation.PUT).cacheName(cacheName);
+   }
+
+   /**
+    * Get specified entry in the remote cache.
+    *
+    * @param cacheName name of cache to put data
+    * @return
+    */
+   public HotRodRequestBuilder get(String cacheName) {
+      return operation(HotRodOperation.GET).cacheName(cacheName);
    }
 }

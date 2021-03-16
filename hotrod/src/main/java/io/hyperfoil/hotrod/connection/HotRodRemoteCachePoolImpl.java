@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
 import org.infinispan.client.hotrod.RemoteCache;
@@ -70,7 +71,28 @@ public class HotRodRemoteCachePoolImpl implements HotRodRemoteCachePool {
    }
 
    @Override
-   public RemoteCache<?, ?> getRemoteCache(String cacheName) {
-      return this.remoteCaches.get(cacheName);
+   public RemoteCacheWithoutToString<?, ?> getRemoteCache(String cacheName) {
+      return new RemoteCacheWithoutToString(this.remoteCaches.get(cacheName));
+   }
+
+   /*
+    * While debugging, the toString method of RemoteCache will do a block call
+    *  at org.infinispan.client.hotrod.impl.RemoteCacheSupport.size(RemoteCacheSupport.java:397)
+    *  at org.infinispan.client.hotrod.impl.RemoteCacheImpl.isEmpty(RemoteCacheImpl.java:275)
+    * This prevent us of configuring each IDE in order to debug a code
+    */
+   public static class RemoteCacheWithoutToString<K, V> {
+      private RemoteCache<K, V> remoteCache;
+      public RemoteCacheWithoutToString(RemoteCache remoteCache) {
+         this.remoteCache = remoteCache;
+      }
+
+      public CompletableFuture<V> putAsync(K key, V value) {
+         return remoteCache.putAsync(key, value);
+      }
+
+      public CompletableFuture<V> getAsync(K key) {
+         return remoteCache.getAsync(key);
+      }
    }
 }
