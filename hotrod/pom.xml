@@ -13,7 +13,7 @@
     <name>Hyperfoil Hot Rod Client</name>
 
     <properties>
-        <version.infinispan>12.0.1.Final</version.infinispan>
+        <version.infinispan>12.1.0.CR1</version.infinispan>
     </properties>
 
     <dependencies>
@@ -30,13 +30,6 @@
             <groupId>org.infinispan</groupId>
             <artifactId>infinispan-client-hotrod</artifactId>
             <version>${version.infinispan}</version>
-        </dependency>
-        <!-- TODO is it an issue? -->
-        <!-- https://infinispan.zulipchat.com/#narrow/stream/118645-infinispan/topic/hotrod-client/near/227642282 -->
-        <dependency>
-            <groupId>org.wildfly.security</groupId>
-            <artifactId>wildfly-elytron-password-impl</artifactId>
-            <version>1.13.2.Final</version>
         </dependency>
 
         <dependency>
