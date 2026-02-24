@@ -243,10 +243,8 @@ public class HttpResponseHandlersImpl implements HttpResponseHandlers, Serializa
          return;
       }
 
-      if (trace) {
-         log.trace("#{} Received part ({} bytes):\n{}", session.uniqueId(), length,
-               data.toString(offset, length, StandardCharsets.UTF_8));
-      }
+      log.info("#{} Received part ({} bytes):\n{}", session.uniqueId(), length,
+            data.toString(offset, length, StandardCharsets.UTF_8));
 
       try {
          int dataStartIndex = data.readerIndex();
