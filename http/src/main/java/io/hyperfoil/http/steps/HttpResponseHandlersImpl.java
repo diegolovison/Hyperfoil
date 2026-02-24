@@ -259,7 +259,8 @@ public class HttpResponseHandlersImpl implements HttpResponseHandlers, Serializa
       } catch (SessionStopException e) {
          throw e;
       } catch (Throwable t) {
-         log.error(new FormattedMessage("#{} Response body processing failed on {}", session.uniqueId(), this), t);
+         String dataStr = data.toString(StandardCharsets.UTF_8);
+         log.error(new FormattedMessage("#{} Response body processing failed with: {}", session.uniqueId(), dataStr), t);
          request.statistics().incrementInternalErrors(request.startTimestampMillis());
          request.markInvalid();
          session.stop();
