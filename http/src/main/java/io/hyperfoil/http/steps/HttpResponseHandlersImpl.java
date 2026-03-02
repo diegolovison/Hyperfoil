@@ -196,22 +196,23 @@ public class HttpResponseHandlersImpl implements HttpResponseHandlers, Serializa
    @Override
    public void handleThrowable(HttpRequest request, Throwable throwable) {
       Session session = request.session;
-      log.info(new FormattedMessage("#{} {} Received exception", session.uniqueId(), request), throwable);
+      if (log.isDebugEnabled()) {
+         log.debug(new FormattedMessage("#{} {} Received exception", session.uniqueId(), request), throwable);
+      }
       if (request.isCompleted()) {
-         log.info("#{} Request has been already completed", session.uniqueId());
+         if (trace) {
+            log.trace("#{} Request has been already completed", session.uniqueId());
+         }
          return;
       }
       if (request.isValid()) {
          // Do not mark as invalid when timed out
-         log.info("request.markInvalid()");
          request.markInvalid();
       }
 
       try {
          if (request.isRunning()) {
-            log.info("request.isRunning()");
             request.statistics().incrementConnectionErrors(request.startTimestampMillis());
-            log.info("request.setCompleting()");
             request.setCompleting();
             if (completionHandlers != null) {
                for (Action handler : completionHandlers) {
@@ -220,17 +221,14 @@ public class HttpResponseHandlersImpl implements HttpResponseHandlers, Serializa
             }
          }
       } catch (SessionStopException e) {
-         log.error(e);
          throw e;
       } catch (Throwable t) {
-         log.error(t);
          t.addSuppressed(throwable);
          log.error(new FormattedMessage("#{} Exception {} thrown while handling another exception: ", session.uniqueId(),
                throwable.toString()), t);
          request.statistics().incrementInternalErrors(request.startTimestampMillis());
          session.stop();
       } finally {
-         log.info("request.setCompleted()");
          request.setCompleted();
       }
    }
