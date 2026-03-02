@@ -6,6 +6,9 @@ import static io.hyperfoil.core.session.SessionFactory.sequenceScopedReadAccess;
 
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -758,8 +761,11 @@ public class HttpResponseHandlersImpl implements HttpResponseHandlers, Serializa
       public void run(Session session) {
          Request request = session.currentRequest();
          if (!request.isValid()) {
-            log.info("#{} Stopping session due to invalid response {} on connection {}", session.uniqueId(), request,
-                  request.connection());
+            Instant instant = Instant.ofEpochMilli(request.startTimestampMillis());
+            ZonedDateTime requestStarted = ZonedDateTime.ofInstant(instant, ZoneId.systemDefault());
+            log.info("#{} Stopping session due to invalid response {} on connection {}. Request started at {}",
+                  session.uniqueId(), request,
+                  request.connection(), requestStarted);
             session.stop();
          }
       }
