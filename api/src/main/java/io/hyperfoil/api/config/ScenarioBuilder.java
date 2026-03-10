@@ -125,6 +125,50 @@ public class ScenarioBuilder {
             && sequence.indexOf(step) == 0;
    }
 
+   /**
+    * Checks if the given step is the first occurrence of its type in an initial sequence.
+    * <p>
+    * This is useful for features that should only apply to the first step of a specific kind.
+    * For example, internal latency compensation should apply to the first HTTP request in a
+    * sequence, even if there are other non-HTTP steps before it.
+    *
+    * @param sequence The sequence containing the step
+    * @param step The step to check
+    * @param stepType The type of step to look for (e.g., HttpRequestStepBuilder.class)
+    * @return true if this is the first step of the given type in an initial sequence
+    *
+    * @example
+    *          Given a sequence: [randomItem, httpRequest1, httpRequest2]
+    *          - isFirstStepOfTypeInInitialSequence(seq, randomItem, HttpRequestStepBuilder.class) → false
+    *          - isFirstStepOfTypeInInitialSequence(seq, httpRequest1, HttpRequestStepBuilder.class) → true
+    *          - isFirstStepOfTypeInInitialSequence(seq, httpRequest2, HttpRequestStepBuilder.class) → false
+    */
+   public boolean isFirstStepOfTypeInInitialSequence(BaseSequenceBuilder<?> sequence, StepBuilder<?> step, Class<?> stepType) {
+      // Only apply to initial sequences (sequences that start when a session begins)
+      if (!isInitialSequence(sequence)) {
+         return false;
+      }
+
+      // Find the position of this step in the sequence
+      int currentStepIndex = sequence.indexOf(step);
+      if (currentStepIndex < 0) {
+         return false; // Step not found in sequence
+      }
+
+      // Check if this is the first step of its type by looking at all previous steps
+      boolean isFirstOfType = true;
+      for (int i = 0; i < currentStepIndex; i++) {
+         StepBuilder<?> previousStep = sequence.steps.get(i);
+         if (stepType.isInstance(previousStep)) {
+            // Found an earlier step of the same type, so this is NOT the first
+            isFirstOfType = false;
+            break;
+         }
+      }
+
+      return isFirstOfType;
+   }
+
    public boolean isInitialSequence(BaseSequenceBuilder<?> sequence) {
       if (!(sequence instanceof SequenceBuilder seq)) {
          // this includes all impl of BaseSequenceBuilder that are not SequenceBuilder e.g. loop, etc

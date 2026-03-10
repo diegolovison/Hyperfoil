@@ -549,7 +549,7 @@ public class HttpRequestStepBuilder extends BaseStepBuilder<HttpRequestStepBuild
       HttpErgonomics ergonomics = locator.benchmark().plugin(HttpPluginBuilder.class).ergonomics();
       if (ergonomics.compensateInternalLatency()) {
          this.useSessionStartTime = locator.scenario().hasOpenModelPhase()
-               && locator.scenario().isFirstStepInInitialSequence(locator.sequence(), this);
+               && locator.scenario().isFirstStepOfTypeInInitialSequence(locator.sequence(), this, HttpRequestStepBuilder.class);
          if (log.isTraceEnabled()) {
             traceCompensateInternalLatency(locator);
          }
@@ -678,18 +678,23 @@ public class HttpRequestStepBuilder extends BaseStepBuilder<HttpRequestStepBuild
    private void traceCompensateInternalLatency(Locator locator) {
       String sequenceName = locator.sequence().name();
       if (this.useSessionStartTime) {
-         log.trace("compensateInternalLatency: using session start time for step {} in sequence {}", stepId, sequenceName);
+         log.trace("compensateInternalLatency: using session start time for HTTP request step {} in sequence {}", stepId,
+               sequenceName);
          return;
       }
       ScenarioBuilder scenario = locator.scenario();
       if (!scenario.hasOpenModelPhase()) {
-         log.trace("compensateInternalLatency: step {} in sequence {} skipped - phase is not open model", stepId, sequenceName);
-      } else if (!scenario.isFirstStepInInitialSequence(locator.sequence(), this)) {
+         log.trace("compensateInternalLatency: HTTP request step {} in sequence {} skipped - phase is not open model", stepId,
+               sequenceName);
+      } else if (!scenario.isFirstStepOfTypeInInitialSequence(locator.sequence(), this, HttpRequestStepBuilder.class)) {
          if (!scenario.isInitialSequence(locator.sequence())) {
-            log.trace("compensateInternalLatency: step {} in sequence {} skipped - not an initial sequence", stepId,
+            log.trace("compensateInternalLatency: HTTP request step {} in sequence {} skipped - not an initial sequence",
+                  stepId,
                   sequenceName);
          } else {
-            log.trace("compensateInternalLatency: step {} in sequence {} skipped - not the first step in the sequence", stepId,
+            log.trace(
+                  "compensateInternalLatency: HTTP request step {} in sequence {} skipped - not the first HTTP request step in the sequence",
+                  stepId,
                   sequenceName);
          }
       }
