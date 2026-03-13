@@ -9,6 +9,7 @@ import io.hyperfoil.api.config.SLA;
 import io.hyperfoil.api.config.Visitor;
 import io.hyperfoil.api.connection.Connection;
 import io.hyperfoil.api.session.Session;
+import io.hyperfoil.core.jfr.RequestEvent;
 import io.hyperfoil.core.steps.StatisticsStep;
 import io.hyperfoil.function.SerializableBiConsumer;
 import io.hyperfoil.function.SerializableBiFunction;
@@ -59,6 +60,11 @@ public class SendHttpRequestStep extends StatisticsStep implements SLA.Provider 
       context.stopWaiting();
 
       HttpRequest request = context.request;
+
+      if (RequestEvent.isEventEnabled()) {
+         RequestEvent.fire(request.startTimestampMillis(), request.path);
+      }
+
       request.send(context.connection, headerAppenders, injectHostHeader, bodyGenerator);
       // We don't need the context anymore and we need to reset it (in case the step is repeated).
       context.reset();
