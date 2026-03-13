@@ -1,0 +1,79 @@
+name: insurance
+http:
+  host: !param INSURANCE_URL
+  sharedConnections: !param SHARED_CONNECTIONS
+ergonomics:
+  autoRangeCheck: true
+  stopOnInvalid: true
+threads: 2
+phases:
+- rampUp:
+    increasingRate:
+      variance: false
+      initialUsersPerSec: 10
+      targetUsersPerSec: !param TX_RATE
+      maxSessions: !param MAX_SESSIONS
+      duration: !param RAMP_UP_DURATION
+      sessionLimitPolicy: FAIL
+      forks:
+        viewInsurance: &viewInsurance
+          weight: 0.8
+          scenario:
+          - generatePolicyHolder:
+            - randomInt: suffix <- 1 .. 99999
+            - template:
+                pattern: test.user_${suffix}@example.com
+                toVar: email
+            - template:
+                pattern: password${suffix}
+                toVar: password
+            - httpRequest:
+                POST: /insurance/rest/registration/add
+                headers:
+                  content-type: application/json
+                  accept: application/json
+                body:
+                  pattern: >-
+                    { "firstName": "John", "middleName": "M", "lastName": "Doe", "gender": "MALE",
+                      "birthDate": "1990-01-01", "email": "${email}", "password": "${password}", "address": {
+                        "city": "New York", "state": "NY", "street1": "123 Main St", "street2": "Apt 1",
+                        "country": "USA", "zip": "10001", "phone": "5551234567"
+                    }}
+            - addToSharedCounter: policyHoldersAdded++
+          - login:
+            - httpRequest:
+                GET: /insurance/rest/authentication/getToken?username=${urlencode:email}&password=${urlencode:password}
+                headers:
+                  accept: application/json
+                handler:
+                  body:
+                    json:
+                      query: .token
+                      toVar: token
+            - awaitVar:
+                var: token
+          - policyHolder:
+            - httpRequest:
+                GET: /insurance/rest/secure/policyHolder/get
+                headers:
+                  auth: ${token}
+                  accept: application/json
+        placeholder: &placeholder
+          weight: 0.2
+          scenario:
+          - wait_for:
+            - thinkTime: 5ms
+            - set:
+               var: k
+               value: "v"
+- steadyState:
+    constantRate:
+      variance: false
+      sessionLimitPolicy: FAIL
+      startAfter: rampUp
+      usersPerSec: !param TX_RATE
+      duration: !param STEADY_DURATION
+      maxSessions: !param MAX_SESSIONS
+      forks:
+        viewInsurance: *viewInsurance
+        placeholder: *placeholder
