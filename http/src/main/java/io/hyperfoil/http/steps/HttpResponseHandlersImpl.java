@@ -37,6 +37,7 @@ import io.hyperfoil.core.data.LimitedPoolResource;
 import io.hyperfoil.core.data.Queue;
 import io.hyperfoil.core.handlers.ConditionalAction;
 import io.hyperfoil.core.handlers.ConditionalProcessor;
+import io.hyperfoil.core.jfr.ResponseEvent;
 import io.hyperfoil.core.steps.AwaitDelayStep;
 import io.hyperfoil.core.steps.PushQueueAction;
 import io.hyperfoil.core.steps.ScheduleDelayStep;
@@ -284,7 +285,12 @@ public class HttpResponseHandlersImpl implements HttpResponseHandlers, Serializa
             request.setCompleting();
 
             if (executed) {
-               request.recordResponse(System.nanoTime());
+               long when = System.nanoTime();
+               request.recordResponse(when);
+
+               if (ResponseEvent.isEventEnabled()) {
+                  ResponseEvent.fire(request.startTimestampMillis(), request.startTimestampNanos(), when, request.path);
+               }
 
                if (headerHandlers != null) {
                   for (HeaderHandler handler : headerHandlers) {

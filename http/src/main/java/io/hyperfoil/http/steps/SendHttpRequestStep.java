@@ -62,7 +62,7 @@ public class SendHttpRequestStep extends StatisticsStep implements SLA.Provider 
       HttpRequest request = context.request;
 
       if (RequestEvent.isEventEnabled()) {
-         RequestEvent.fire(request.startTimestampMillis(), request.path);
+         RequestEvent.fire(request.startTimestampMillis(), request.startTimestampNanos(), request.path);
       }
 
       request.send(context.connection, headerAppenders, injectHostHeader, bodyGenerator);
