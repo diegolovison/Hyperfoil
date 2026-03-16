@@ -87,12 +87,15 @@ public class SimulationRunner {
    };
 
    public SimulationRunner(Benchmark benchmark, String runId, int agentId, Consumer<Throwable> errorHandler) {
+      long pid = ProcessHandle.current().pid();
+      log.info("=== PID {} - AGENT {} STARTING - SimulationRunner constructor called for runId={} ===", pid, agentId, runId);
       this.eventLoopGroup = EventLoopFactory.INSTANCE.create(benchmark.threads(agentId));
       this.executors = StreamSupport.stream(eventLoopGroup.spliterator(), false).map(EventLoop.class::cast)
             .toArray(EventLoop[]::new);
       this.benchmark = benchmark;
       this.runId = runId;
       this.agentId = agentId;
+      log.info("=== PID {} - AGENT {} - Benchmark has {} phases ===", pid, agentId, benchmark.phases().size());
       if (benchmark.phases().isEmpty()) {
          throw new BenchmarkDefinitionException("This benchmark does not have any phases, nothing to do!");
       }
@@ -380,7 +383,9 @@ public class SimulationRunner {
    }
 
    public void startPhase(String phase) {
+      long pid = ProcessHandle.current().pid();
       PhaseInstance phaseInstance = instances.get(phase);
+      log.info("=== PID {} - STARTING PHASE: {} (isWarmup={}) ===", pid, phase, phaseInstance.definition().isWarmup);
       SharedResources sharedResources = this.sharedResources.get(phaseInstance.definition().sharedResources);
       if (sharedResources != null) {
          // Avoid NPE in noop phases
@@ -394,6 +399,7 @@ public class SimulationRunner {
          }
       }
       phaseInstance.start(eventLoopGroup);
+      log.info("=== PID {} - PHASE {} STARTED ===", pid, phase);
    }
 
    private void applyToPhase(SessionStatistics statistics, Phase phase, long now, BiConsumer<Statistics, Long> f) {
