@@ -261,8 +261,8 @@ public class AgentVerticle extends AbstractVerticle {
 
       assert context.isEventLoopContext();
       statsTimerId = vertx.setPeriodic(benchmark.statisticsCollectionPeriod(), timerId -> {
-         if (log.isDebugEnabled()) {
-            log.debug("Collecting statistics");
+         if (log.isTraceEnabled()) {
+            log.trace("Collecting statistics");
          }
          runner.visitStatistics(requestStatsSender);
          requestStatsSender.send(statisticsCountDown);
@@ -270,8 +270,8 @@ public class AgentVerticle extends AbstractVerticle {
          sessionStatsSender.send();
          runner.visitConnectionStats(connectionStatsSender);
          connectionStatsSender.send();
-         if (log.isDebugEnabled()) {
-            log.debug("Finished collecting statistics");
+         if (log.isTraceEnabled()) {
+            log.trace("Finished collecting statistics");
          }
       });
 
