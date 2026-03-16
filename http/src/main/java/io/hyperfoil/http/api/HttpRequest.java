@@ -26,6 +26,7 @@ public class HttpRequest extends Request {
    public String path;
    public final CacheControl cacheControl;
    private HttpConnectionPool pool;
+   public String metric;
 
    public HttpRequest(Session session, boolean httpCacheEnabled) {
       super(session);
@@ -42,8 +43,14 @@ public class HttpRequest extends Request {
    }
 
    public void start(HttpConnectionPool pool, HttpResponseHandlers handlers, SequenceInstance sequence, Statistics statistics) {
+      this.start(pool, handlers, sequence, statistics, null);
+   }
+
+   public void start(HttpConnectionPool pool, HttpResponseHandlers handlers, SequenceInstance sequence, Statistics statistics,
+         String metric) {
       this.handlers = handlers;
       this.pool = pool;
+      this.metric = metric;
       start(sequence, statistics);
    }
 

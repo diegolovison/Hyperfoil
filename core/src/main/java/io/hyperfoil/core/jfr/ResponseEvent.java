@@ -29,17 +29,26 @@ public class ResponseEvent extends Event {
    @Label("Request path")
    public String path;
 
+   @Label("Phase name")
+   public String phaseName;
+
+   @Label("Metric name")
+   public String metric;
+
    public static boolean isEventEnabled() {
       return EVENT_TYPE.isEnabled();
    }
 
-   public static void fire(long startTimestampMillis, long startTimestampNanos, long responseTimeNano, String path) {
+   public static void fire(long startTimestampMillis, long startTimestampNanos, long responseTimeNano, String path,
+         String phaseName, String metric) {
       var event = new ResponseEvent();
       event.eventCreation = System.nanoTime();
       event.startTimestampMillis = startTimestampMillis;
       event.startTimestampNanos = startTimestampNanos;
       event.responseTimeNano = responseTimeNano;
       event.path = path;
+      event.phaseName = phaseName;
+      event.metric = metric;
       event.commit();
    }
 }

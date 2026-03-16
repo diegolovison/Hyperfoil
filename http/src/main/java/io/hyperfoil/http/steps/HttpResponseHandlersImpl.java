@@ -289,7 +289,8 @@ public class HttpResponseHandlersImpl implements HttpResponseHandlers, Serializa
                request.recordResponse(when);
 
                if (ResponseEvent.isEventEnabled()) {
-                  ResponseEvent.fire(request.startTimestampMillis(), request.startTimestampNanos(), when, request.path);
+                  ResponseEvent.fire(request.startTimestampMillis(), request.startTimestampNanos(), when, request.path,
+                        session.phase().getName(), request.metric);
                }
 
                if (headerHandlers != null) {

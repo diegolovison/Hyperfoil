@@ -85,7 +85,7 @@ public class PrepareHttpRequestStep extends StatisticsStep implements ResourceUt
          String metric = destinations.hasSingleDestination() ? metricSelector.apply(null, request.path)
                : metricSelector.apply(request.authority, request.path);
          Statistics statistics = session.statistics(id(), metric);
-         request.start(connectionPool, handler, session.currentSequence(), statistics);
+         request.start(connectionPool, handler, session.currentSequence(), statistics, metric);
          connectionPool.acquire(false, context);
       } catch (Throwable t) {
          // If any error happens we still need to release the request
