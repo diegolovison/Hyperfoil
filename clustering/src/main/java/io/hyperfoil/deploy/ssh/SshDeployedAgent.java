@@ -220,7 +220,7 @@ public class SshDeployedAgent implements DeployedAgent {
       if (extras != null) {
          startAgentCommmand.append(" ").append(extras);
       }
-      startAgentCommmand.append(" io.hyperfoil.Hyperfoil\\$Agent &> ")
+      startAgentCommmand.append(" io.hyperfoil.Hyperfoil\\$Agent &>> ")
             .append(dir).append(File.separatorChar).append("agent.").append(name).append(".log");
       String startAgent = startAgentCommmand.toString();
       log.info("Starting agent {}", name);
