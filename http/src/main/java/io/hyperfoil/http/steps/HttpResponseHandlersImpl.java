@@ -280,18 +280,19 @@ public class HttpResponseHandlersImpl implements HttpResponseHandlers, Serializa
          log.trace("#{} Completed request on {}", session.uniqueId(), request.connection());
       }
 
+      long when = System.nanoTime();
+
+      if (ResponseEvent.isEventEnabled()) {
+         ResponseEvent.fire(request.startTimestampMillis(), request.startTimestampNanos(), when, request.path,
+               session.phase().getName(), request.metric, executed, request.isRunning());
+      }
+
       try {
          if (request.isRunning()) {
             request.setCompleting();
 
             if (executed) {
-               long when = System.nanoTime();
                request.recordResponse(when);
-
-               if (ResponseEvent.isEventEnabled()) {
-                  ResponseEvent.fire(request.startTimestampMillis(), request.startTimestampNanos(), when, request.path,
-                        session.phase().getName(), request.metric);
-               }
 
                if (headerHandlers != null) {
                   for (HeaderHandler handler : headerHandlers) {

@@ -35,12 +35,18 @@ public class ResponseEvent extends Event {
    @Label("Metric name")
    public String metric;
 
+   @Label("Executed")
+   public boolean executed;
+
+   @Label("Is running")
+   public boolean isRunning;
+
    public static boolean isEventEnabled() {
       return EVENT_TYPE.isEnabled();
    }
 
    public static void fire(long startTimestampMillis, long startTimestampNanos, long responseTimeNano, String path,
-         String phaseName, String metric) {
+         String phaseName, String metric, boolean executed, boolean isRunning) {
       var event = new ResponseEvent();
       event.eventCreation = System.nanoTime();
       event.startTimestampMillis = startTimestampMillis;
@@ -49,6 +55,8 @@ public class ResponseEvent extends Event {
       event.path = path;
       event.phaseName = phaseName;
       event.metric = metric;
+      event.executed = executed;
+      event.isRunning = isRunning;
       event.commit();
    }
 }
