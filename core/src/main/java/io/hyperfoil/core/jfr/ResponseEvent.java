@@ -17,6 +17,9 @@ public class ResponseEvent extends Event {
    @Label("When the event was fired (ns)")
    public long eventCreation;
 
+   @Label("When the event was fired (ms)")
+   public long eventCreationMillis;
+
    @Label("Pre-calculated (ms)")
    public long startTimestampMillis;
 
@@ -49,6 +52,7 @@ public class ResponseEvent extends Event {
          String phaseName, String metric, boolean executed, boolean isRunning) {
       var event = new ResponseEvent();
       event.eventCreation = System.nanoTime();
+      event.eventCreationMillis = System.currentTimeMillis();
       event.startTimestampMillis = startTimestampMillis;
       event.startTimestampNanos = startTimestampNanos;
       event.responseTimeNano = responseTimeNano;
