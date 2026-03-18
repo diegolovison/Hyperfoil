@@ -7,7 +7,7 @@ import jdk.jfr.Label;
 import jdk.jfr.Name;
 import jdk.jfr.StackTrace;
 
-@Name("io.hyperfoil.core.jfr.RequestEvent")
+@Name("io.hyperfoil.api.jfr.RequestEvent")
 @Enabled(false)
 @StackTrace(false)
 public class RequestEvent extends Event {

@@ -26,7 +26,6 @@ public class HttpRequest extends Request {
    public String path;
    public final CacheControl cacheControl;
    private HttpConnectionPool pool;
-   public String metric;
 
    public HttpRequest(Session session, boolean httpCacheEnabled) {
       super(session);

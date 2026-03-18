@@ -6,6 +6,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import io.hyperfoil.api.jfr.RecordResponseEvent;
 import io.hyperfoil.api.session.SequenceInstance;
 import io.hyperfoil.api.session.Session;
 import io.hyperfoil.api.statistics.Statistics;
@@ -31,6 +32,7 @@ public abstract class Request implements Callable<Void>, GenericFutureListener<F
    private Connection connection;
    private Status status = Status.IDLE;
    private Result result = Result.VALID;
+   public String metric;
 
    public Request(Session session) {
       this.session = session;
@@ -129,6 +131,9 @@ public abstract class Request implements Callable<Void>, GenericFutureListener<F
    }
 
    public void recordResponse(long endTimestampNanos) {
+      if (RecordResponseEvent.isEventEnabled()) {
+         RecordResponseEvent.fire(this.startTimestampMillis(), session.phase().getName(), this.metric);
+      }
       statistics.recordResponse(startTimestampMillis, endTimestampNanos - startTimestampNanos);
    }
 

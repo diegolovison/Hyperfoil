@@ -7,7 +7,7 @@ import jdk.jfr.Label;
 import jdk.jfr.Name;
 import jdk.jfr.StackTrace;
 
-@Name("io.hyperfoil.core.jfr.ResponseEvent")
+@Name("io.hyperfoil.api.jfr.ResponseEvent")
 @Enabled(false)
 @StackTrace(false)
 public class ResponseEvent extends Event {
