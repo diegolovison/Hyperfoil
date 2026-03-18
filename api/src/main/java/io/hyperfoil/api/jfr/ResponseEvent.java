@@ -1,4 +1,4 @@
-package io.hyperfoil.core.jfr;
+package io.hyperfoil.api.jfr;
 
 import jdk.jfr.Enabled;
 import jdk.jfr.Event;
