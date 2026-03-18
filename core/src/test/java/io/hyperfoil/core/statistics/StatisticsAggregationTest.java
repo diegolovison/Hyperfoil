@@ -13,71 +13,79 @@ import org.junit.jupiter.api.Test;
 import io.hyperfoil.api.statistics.Statistics;
 
 public class StatisticsAggregationTest {
+
    private static final Logger log = LogManager.getLogger(StatisticsAggregationTest.class);
 
-   @Test
-   public void testStatisticsTimeDistributionMismatch() {
-      long baseTime = 1710774000000L;
-      long millis = 1000L;
-      Map<Long, Integer> requestData = new LinkedHashMap<>();
-      requestData.put(baseTime + (1 * millis), 1);
-      requestData.put(baseTime + (3 * millis), 1);
-      requestData.put(baseTime + (9 * millis), 1);
-      requestData.put(baseTime + (11 * millis), 3);
-      requestData.put(baseTime + (13 * millis), 2);
-      requestData.put(baseTime + (14 * millis), 1);
-      requestData.put(baseTime + (15 * millis), 1);
-      requestData.put(baseTime + (16 * millis), 3);
-      requestData.put(baseTime + (18 * millis), 1);
-      requestData.put(baseTime + (19 * millis), 6);
-      requestData.put(baseTime + (20 * millis), 2);
-      requestData.put(baseTime + (21 * millis), 1);
-      requestData.put(baseTime + (22 * millis), 1);
-      requestData.put(baseTime + (23 * millis), 5);
-      requestData.put(baseTime + (24 * millis), 7);
-      requestData.put(baseTime + (25 * millis), 2);
-      requestData.put(baseTime + (26 * millis), 2);
-      requestData.put(baseTime + (27 * millis), 2);
-      requestData.put(baseTime + (28 * millis), 9);
-      requestData.put(baseTime + (29 * millis), 5);
-      requestData.put(baseTime + (30 * millis), 2);
-      requestData.put(baseTime + (31 * millis), 3);
-      requestData.put(baseTime + (32 * millis), 6);
-      requestData.put(baseTime + (33 * millis), 7);
-      requestData.put(baseTime + (34 * millis), 5);
-      requestData.put(baseTime + (35 * millis), 6);
-      requestData.put(baseTime + (36 * millis), 4);
-      requestData.put(baseTime + (37 * millis), 8);
-      requestData.put(baseTime + (38 * millis), 7);
-      requestData.put(baseTime + (39 * millis), 6);
-      requestData.put(baseTime + (40 * millis), 12);
-      requestData.put(baseTime + (41 * millis), 8);
-      requestData.put(baseTime + (42 * millis), 7);
-      requestData.put(baseTime + (43 * millis), 13);
-      requestData.put(baseTime + (44 * millis), 8);
-      requestData.put(baseTime + (45 * millis), 7);
-      requestData.put(baseTime + (46 * millis), 11);
-      requestData.put(baseTime + (47 * millis), 9);
-      requestData.put(baseTime + (48 * millis), 9);
-      requestData.put(baseTime + (49 * millis), 13);
-      requestData.put(baseTime + (50 * millis), 13);
-      requestData.put(baseTime + (51 * millis), 13);
-      requestData.put(baseTime + (52 * millis), 9);
-      requestData.put(baseTime + (53 * millis), 7);
-      requestData.put(baseTime + (54 * millis), 11);
-      requestData.put(baseTime + (55 * millis), 13);
-      requestData.put(baseTime + (56 * millis), 11);
-      requestData.put(baseTime + (57 * millis), 10);
-      requestData.put(baseTime + (58 * millis), 16);
-      requestData.put(baseTime + (59 * millis), 14);
-      requestData.put(baseTime + (60 * millis), 13);
-      requestData.put(baseTime + (61 * millis), 14);
-      requestData.put(baseTime + (62 * millis), 22);
-      requestData.put(baseTime + (63 * millis), 17);
-      requestData.put(baseTime + (64 * millis), 13);
-      requestData.put(baseTime + (65 * millis), 15);
-      requestData.put(baseTime + (66 * millis), 3);
+   private final long baseTime = 1710774000000L;
+   private final long millis = 1000L;
 
+   @Test
+   public void testStatisticsTimeDistributionWithoutSequentialData() {
+      Map<Long, Integer> requestData = new LinkedHashMap<>();
+      for (int i = 1; i < 100; i++) {
+         if (i % 2 == 0) {
+            requestData.put(baseTime + (i * millis), i);
+         }
+      }
+      runExperiment(requestData);
+   }
+
+   @Test
+   public void testStatisticsTimeDistributionWithSequentialData() {
+      Map<Long, Integer> requestData = new LinkedHashMap<>();
+      for (int i = 1; i < 100; i++) {
+         requestData.put(baseTime + (i * millis), i);
+      }
+      runExperiment(requestData);
+   }
+
+   @Test
+   public void testEmptyData() {
+      Map<Long, Integer> requestData = new LinkedHashMap<>();
+      // No data added - testing empty case
+      runExperiment(requestData);
+   }
+
+   @Test
+   public void testSingleTimestamp() {
+      Map<Long, Integer> requestData = new LinkedHashMap<>();
+      requestData.put(baseTime + millis, 42);
+      runExperiment(requestData);
+   }
+
+   @Test
+   public void testVeryLargeGapsBetweenTimestamps() {
+      Map<Long, Integer> requestData = new LinkedHashMap<>();
+      // Add timestamps with very large gaps (hours apart)
+      requestData.put(baseTime + (1 * millis), 10);
+      requestData.put(baseTime + (3600 * millis), 20); // 1 hour gap
+      requestData.put(baseTime + (7200 * millis), 30); // Another 1 hour gap
+      requestData.put(baseTime + (10800 * millis), 40); // Another 1 hour gap
+      runExperiment(requestData);
+   }
+
+   @Test
+   public void testTimestampsAtArrayBoundaries() {
+      Map<Long, Integer> requestData = new LinkedHashMap<>();
+      // Test at initial array size boundary (16)
+      requestData.put(baseTime + (15 * millis), 15);
+      requestData.put(baseTime + (16 * millis), 16);
+      requestData.put(baseTime + (17 * millis), 17);
+
+      // Test at doubled array size boundary (32)
+      requestData.put(baseTime + (31 * millis), 31);
+      requestData.put(baseTime + (32 * millis), 32);
+      requestData.put(baseTime + (33 * millis), 33);
+
+      // Test at next boundary (64)
+      requestData.put(baseTime + (63 * millis), 63);
+      requestData.put(baseTime + (64 * millis), 64);
+      requestData.put(baseTime + (65 * millis), 65);
+
+      runExperiment(requestData);
+   }
+
+   private void runExperiment(Map<Long, Integer> requestData) {
       Statistics stats = new Statistics(baseTime);
       long end = 0;
       int totalRecorded = 0;
@@ -103,7 +111,7 @@ public class StatisticsAggregationTest {
       assertEquals(totalRecorded, totalCollected);
 
       log.info("Per-timestamp comparison:");
-      log.info("Offset(s) | JFR | Statistics | Match");
+      log.info("Offset(s) | Value | Statistics | Match");
       log.info("----------|-----|------------|------");
 
       for (Map.Entry<Long, Integer> entry : requestData.entrySet()) {
