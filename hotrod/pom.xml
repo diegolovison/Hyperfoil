@@ -204,7 +204,7 @@
         <dependency>
             <groupId>org.infinispan.protostream</groupId>
             <artifactId>protostream</artifactId>
-            <scope>test</scope>
+            <optional>true</optional>
         </dependency>
 
         <dependency>
@@ -273,6 +273,10 @@
                                     <shadedPattern>shaded.org.infinispan</shadedPattern>
                                 </relocation>
                                 <relocation>
+                                    <pattern>org.wildfly</pattern>
+                                    <shadedPattern>shaded.org.wildfly</shadedPattern>
+                                </relocation>
+                                <relocation>
                                     <pattern>jakarta.transaction</pattern>
                                     <shadedPattern>shaded.jakarta.transaction</shadedPattern>
                                 </relocation>
@@ -280,10 +284,45 @@
                                     <pattern>io.reactivex.rxjava3</pattern>
                                     <shadedPattern>shaded.io.reactivex.rxjava3</shadedPattern>
                                 </relocation>
+                                <relocation>
+                                    <pattern>com.github.benmanes.caffeine</pattern>
+                                    <shadedPattern>shaded.com.github.benmanes.caffeine</shadedPattern>
+                                </relocation>
                             </relocations>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
                             </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>fix-shaded-proto-files</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <property name="jarfile" value="${project.build.directory}/${project.build.finalName}.jar"/>
+                                <tempfile property="proto.tmpdir" prefix="shade-proto-fix" destDir="${java.io.tmpdir}"/>
+                                <mkdir dir="${proto.tmpdir}"/>
+                                <unjar src="${jarfile}" dest="${proto.tmpdir}">
+                                    <patternset>
+                                        <include name="**/*.proto"/>
+                                    </patternset>
+                                </unjar>
+                                <replace dir="${proto.tmpdir}" includes="**/*.proto"
+                                         token="package org.infinispan" value="package shaded.org.infinispan"/>
+                                <replace dir="${proto.tmpdir}" includes="**/*.proto"
+                                         token="import &quot;org/infinispan/" value="import &quot;shaded/org/infinispan/"/>
+                                <jar destfile="${jarfile}" update="true" basedir="${proto.tmpdir}" includes="**/*.proto"/>
+                                <delete dir="${proto.tmpdir}"/>
+                            </target>
                         </configuration>
                     </execution>
                 </executions>
@@ -301,7 +340,7 @@
                         <configuration>
                             <skip>${module.skipCopyDependencies}</skip>
                             <includeScope>runtime</includeScope>
-                            <excludeGroupIds>com.github.ben-manes.caffeine,org.infinispan,org.infinispan.protostream,org.wildfly,jakarta.transaction,io.reactivex.rxjava3</excludeGroupIds>
+                            <excludeGroupIds>com.github.ben-manes.caffeine,org.infinispan,org.infinispan.protostream,org.wildfly.common,org.wildfly.security,jakarta.transaction,io.reactivex.rxjava3</excludeGroupIds>
                             <silent>true</silent>
                         </configuration>
                     </execution>
