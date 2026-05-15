@@ -1,0 +1,58 @@
+{
+  "catalogs": {},
+  "aliases": {
+    "wrk2": {
+      "script-ref": "io.hyperfoil:hyperfoil-cli:0.28.1-SNAPSHOT",
+      "dependencies": [
+        "io.hyperfoil:hyperfoil-all:0.28.1-SNAPSHOT@pom",
+        "io.hyperfoil:hyperfoil-api",
+        "io.hyperfoil:hyperfoil-clustering",
+        "io.hyperfoil:hyperfoil-controller-api",
+        "io.hyperfoil:hyperfoil-core",
+        "io.hyperfoil:hyperfoil-http"
+      ],
+      "main": "io.hyperfoil.cli.commands.Wrk2"
+    },
+    "wrk": {
+      "script-ref": "io.hyperfoil:hyperfoil-cli:0.28.1-SNAPSHOT",
+      "dependencies": [
+        "io.hyperfoil:hyperfoil-all:0.28.1-SNAPSHOT@pom",
+        "io.hyperfoil:hyperfoil-api",
+        "io.hyperfoil:hyperfoil-clustering",
+        "io.hyperfoil:hyperfoil-controller-api",
+        "io.hyperfoil:hyperfoil-core",
+        "io.hyperfoil:hyperfoil-http"
+      ],
+      "main": "io.hyperfoil.cli.commands.Wrk"
+    },
+    "cli": {
+      "script-ref": "io.hyperfoil:hyperfoil-cli:0.28.1-SNAPSHOT",
+      "dependencies": [
+        "io.hyperfoil:hyperfoil-all:0.28.1-SNAPSHOT@pom",
+        "io.hyperfoil:hyperfoil-api",
+        "io.hyperfoil:hyperfoil-clustering",
+        "io.hyperfoil:hyperfoil-controller-api",
+        "io.hyperfoil:hyperfoil-core",
+        "io.hyperfoil:hyperfoil-http"
+      ],
+      "main": "io.hyperfoil.cli.HyperfoilCli"
+    },
+    "run": {
+      "script-ref": "io.hyperfoil:hyperfoil-cli:0.28.1-SNAPSHOT",
+      "dependencies": [
+        "io.hyperfoil:hyperfoil-all:0.28.1-SNAPSHOT@pom",
+        "io.hyperfoil:hyperfoil-api",
+        "io.hyperfoil:hyperfoil-clustering",
+        "io.hyperfoil:hyperfoil-controller-api",
+        "io.hyperfoil:hyperfoil-core",
+        "io.hyperfoil:hyperfoil-http"
+      ],
+      "main": "io.hyperfoil.cli.commands.LoadAndRun"
+    },
+    "qDup": {
+      "script-ref": "io.hyperfoil.tools:qDup:0.11.0",
+      "dependencies": [ ]
+    }
+  },
+  "templates": {}
+}
