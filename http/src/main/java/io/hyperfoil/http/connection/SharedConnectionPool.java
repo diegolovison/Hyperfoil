@@ -200,7 +200,12 @@ class SharedConnectionPool extends ConnectionPoolStats implements HttpConnection
          HttpConnection connection = acquireNow(false);
          if (connection != null) {
             blockedSessions.decrementUsed();
-            consumer.accept(connection);
+            if (consumer.isValid()) {
+               consumer.accept(connection);
+            } else {
+               this.waiting.clear();
+               this.pulse();
+            }
          } else if (failures > MAX_FAILURES) {
             log.error("The request cannot be made since the failures to connect to {} exceeded a threshold. Stopping session.",
                   authority);
