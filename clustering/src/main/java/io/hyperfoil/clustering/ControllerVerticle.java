@@ -277,9 +277,9 @@ public class ControllerVerticle extends AbstractVerticle implements NodeListener
          log.info("Run {}: completing stats for phase {}", run.id, phase);
          run.statisticsStore().completePhase(phase);
          if (!run.statisticsStore().validateSlas()) {
-            log.info("SLA validation failed for {}", phase);
-            controllerPhase.setFailed();
             if (run.benchmark.failurePolicy() == Benchmark.FailurePolicy.CANCEL) {
+               log.info("SLA validation failed for {}", phase);
+               controllerPhase.setFailed();
                failNotStartedPhases(run, controllerPhase);
             }
          }
@@ -502,8 +502,11 @@ public class ControllerVerticle extends AbstractVerticle implements NodeListener
       //noinspection ResultOfMethodCallIgnored
       runDir.toFile().mkdirs();
       Run run = new Run(runId, runDir, benchmark);
-      run.initStore(new StatisticsStore(benchmark, failure -> log.warn("Failed verify SLA(s) for {}/{}: {}",
-            failure.phase(), failure.metric(), failure.message())));
+      run.initStore(new StatisticsStore(benchmark, failure -> {
+         if (!benchmark.failurePolicy().equals(Benchmark.FailurePolicy.CONTINUE)) {
+            log.warn("Failed verify SLA(s) for {}/{}: {}", failure.phase(), failure.metric(), failure.message());
+         }
+      }));
       run.description = description;
       runs.put(run.id, run);
       if (run.benchmark.source() != null) {

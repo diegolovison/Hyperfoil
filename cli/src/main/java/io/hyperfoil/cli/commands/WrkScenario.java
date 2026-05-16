@@ -53,6 +53,7 @@ public abstract class WrkScenario {
       // @formatter:off
       BenchmarkBuilder builder = BenchmarkBuilder.builder()
             .name(name)
+            .failurePolicy(Benchmark.FailurePolicy.CONTINUE)
             .addPlugin(HttpPluginBuilder::new)
                .ergonomics()
                   .repeatCookies(false)
