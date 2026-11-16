@@ -3,13 +3,20 @@ hotrod:
 - uri: !concat [ "hotrod://", !param HOST 127.0.0.1, ":", !param PORT 11222 ]
   caches:
   - !param CACHE my-cache
-usersPerSec: 1
-duration: 5s
-scenario:
-- example:
-  - randomInt: cacheKey <- 1 .. 999
-  - randomUUID: cacheValue
-  - hotrodRequest:
-      put: !param CACHE my-cache
-      key: key-${cacheKey}
-      value: value-${cacheValue}
+phases:
+- main:
+    constantRate:
+      usersPerSec: 1
+      # This is a functional smoke test, not a load-model test: without this, usersPerSec defaults to a
+      # Poisson arrival process, which has a ~0.7% chance of firing zero requests in 5s and failing with a
+      # confusing NPE.
+      variance: false
+      duration: 5s
+      scenario:
+      - example:
+        - randomInt: cacheKey <- 1 .. 999
+        - randomUUID: cacheValue
+        - hotrodRequest:
+            put: !param CACHE my-cache
+            key: key-${cacheKey}
+            value: value-${cacheValue}
